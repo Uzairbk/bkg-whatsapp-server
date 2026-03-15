@@ -5,14 +5,7 @@ require("dotenv").config();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-app.use(cors({
-  origin: [
-    "https://binkhalidgroup.com",
-    "https://www.binkhalidgroup.com",
-    "http://localhost:5500",
-    "http://127.0.0.1:5500"
-  ]
-}));
+app.use(cors());
 app.use(express.json());
 
 const WHATSAPP_API_URL = "https://graph.facebook.com/v25.0";
