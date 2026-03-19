@@ -13,8 +13,8 @@ const PHONE_NUMBER_ID = process.env.WHATSAPP_PHONE_NUMBER_ID || "106949954957663
 const ACCESS_TOKEN = process.env.WHATSAPP_ACCESS_TOKEN;
 const TEMPLATE_NAME = process.env.WHATSAPP_TEMPLATE_NAME || "contact_form_confirmation";
 const WEBHOOK_VERIFY_TOKEN = process.env.WEBHOOK_VERIFY_TOKEN || "bkg_whatsapp_verify_2024";
+const WABA_ID = process.env.WABA_ID || "2320026945133303";
 
-// Auto-reply message for incoming customer messages
 const AUTO_REPLY_MESSAGE = `Thank you for contacting Bin Khalid Group.
 
 This is an automated response, and messages sent to this number will not be received. One of our representatives will reach out to you soon.
@@ -25,18 +25,41 @@ For urgent inquiries, please contact us directly:
 
 \u{1F552} Hours: Monday to Saturday, 10:00 AM \u{2013} 6:00 PM`;
 
-// Track recently replied numbers to avoid spamming (reply once per 24 hours)
 const repliedNumbers = new Map();
-const REPLY_COOLDOWN = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+const REPLY_COOLDOWN = 24 * 60 * 60 * 1000;
 
-// Health check
+// Subscribe app to WABA webhook events on startup
+async function subscribeToWABA() {
+  try {
+    const url = `${WHATSAPP_API_URL}/${WABA_ID}/subscribed_apps`;
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${ACCESS_TOKEN}`,
+        "Content-Type": "application/json",
+      },
+    });
+    const data = await response.json();
+    if (data.success) {
+      console.log("Successfully subscribed to WABA webhook events");
+    } else {
+      console.error("WABA subscription failed:", JSON.stringify(data));
+    }
+  } catch (error) {
+    console.error("WABA subscription error:", error.message);
+  }
+}
+
 app.get("/", (req, res) => {
   res.json({ status: "ok", service: "BKG WhatsApp API" });
 });
 
-// ============================================
-// WEBHOOK - Verify endpoint (Meta sends GET)
-// ============================================
+// Manual subscribe endpoint
+app.get("/subscribe", async (req, res) => {
+  await subscribeToWABA();
+  res.json({ status: "subscription attempted" });
+});
+
 app.get("/webhook", (req, res) => {
   const mode = req.query["hub.mode"];
   const token = req.query["hub.verify_token"];
@@ -51,15 +74,12 @@ app.get("/webhook", (req, res) => {
   return res.sendStatus(403);
 });
 
-// ============================================
-// WEBHOOK - Receive incoming messages (Meta sends POST)
-// ============================================
 app.post("/webhook", async (req, res) => {
-  // Always respond 200 quickly to Meta
   res.sendStatus(200);
 
   try {
     const body = req.body;
+    console.log("Webhook received:", JSON.stringify(body).substring(0, 500));
 
     if (
       body.object === "whatsapp_business_account" &&
@@ -84,7 +104,6 @@ app.post("/webhook", async (req, res) => {
               `Incoming from ${customerName} (${from}): ${msgBody}`
             );
 
-            // Check cooldown - only auto-reply once per 24 hours per number
             const lastReplied = repliedNumbers.get(from);
             const now = Date.now();
 
@@ -95,12 +114,10 @@ app.post("/webhook", async (req, res) => {
               continue;
             }
 
-            // Send auto-reply
             await sendAutoReply(from);
             repliedNumbers.set(from, now);
             console.log(`Auto-reply sent to ${from}`);
 
-            // Clean up old entries from map (memory management)
             for (const [number, timestamp] of repliedNumbers) {
               if (now - timestamp > REPLY_COOLDOWN) {
                 repliedNumbers.delete(number);
@@ -115,9 +132,6 @@ app.post("/webhook", async (req, res) => {
   }
 });
 
-// ============================================
-// Send auto-reply text message
-// ============================================
 async function sendAutoReply(to) {
   const url = `${WHATSAPP_API_URL}/${PHONE_NUMBER_ID}/messages`;
 
@@ -150,9 +164,6 @@ async function sendAutoReply(to) {
   return data;
 }
 
-// ============================================
-// OUTBOUND - Send template message (existing functionality)
-// ============================================
 app.post("/api/send-whatsapp", async (req, res) => {
   try {
     const { name, phone, services, city, area, projectSize } = req.body;
@@ -201,9 +212,6 @@ app.post("/api/send-whatsapp", async (req, res) => {
   }
 });
 
-// ============================================
-// Send WhatsApp template message
-// ============================================
 async function sendWhatsAppTemplate(to, name, service, location, size) {
   const url = `${WHATSAPP_API_URL}/${PHONE_NUMBER_ID}/messages`;
 
@@ -248,9 +256,6 @@ async function sendWhatsAppTemplate(to, name, service, location, size) {
   return data;
 }
 
-// ============================================
-// Utility: Format phone number to international format
-// ============================================
 function formatPhoneNumber(phone) {
   let digits = phone.replace(/\\D/g, "");
 
@@ -269,6 +274,8 @@ function formatPhoneNumber(phone) {
   return digits;
 }
 
-app.listen(PORT, () => {
+app.listen(PORT, async () => {
   console.log(`BKG WhatsApp Server running on port ${PORT}`);
+  // Subscribe to WABA events on startup
+  await subscribeToWABA();
 });
