@@ -1,6 +1,13 @@
 const express = require("express");
 const cors = require("cors");
+const nodemailer = require("nodemailer");
 require("dotenv").config();
+
+const {
+  clientConfirmation,
+  vendorConfirmation,
+  internalNotification,
+} = require("./emailTemplates");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -14,6 +21,35 @@ const ACCESS_TOKEN = process.env.WHATSAPP_ACCESS_TOKEN;
 const TEMPLATE_NAME = process.env.WHATSAPP_TEMPLATE_NAME || "contact_form_confirmation";
 const WEBHOOK_VERIFY_TOKEN = process.env.WEBHOOK_VERIFY_TOKEN || "bkg_whatsapp_verify_2024";
 const WABA_ID = process.env.WABA_ID || "2320026945133303";
+
+// ============ EMAIL (Gmail - info@binkhalidgroup.com) ============
+const EMAIL_USER = process.env.EMAIL_USER; // info@binkhalidgroup.com
+const EMAIL_APP_PASSWORD = process.env.EMAIL_APP_PASSWORD; // Gmail App Password
+const INTERNAL_NOTIFY_EMAIL = process.env.INTERNAL_NOTIFY_EMAIL || EMAIL_USER;
+
+let mailer = null;
+if (EMAIL_USER && EMAIL_APP_PASSWORD) {
+  mailer = nodemailer.createTransport({
+    service: "gmail",
+    auth: { user: EMAIL_USER, pass: EMAIL_APP_PASSWORD },
+  });
+  mailer
+    .verify()
+    .then(() => console.log("Email transporter ready (" + EMAIL_USER + ")"))
+    .catch((e) => console.error("Email transporter error:", e.message));
+} else {
+  console.warn("EMAIL_USER / EMAIL_APP_PASSWORD not set - email disabled");
+}
+
+async function sendEmail(to, template) {
+  if (!mailer) throw new Error("Email not configured");
+  return mailer.sendMail({
+    from: `"Bin Khalid Group" <${EMAIL_USER}>`,
+    to: to,
+    subject: template.subject,
+    html: template.html,
+  });
+}
 
 const AUTO_REPLY_MESSAGE = `Thank you for contacting Bin Khalid Group.
 
@@ -212,6 +248,99 @@ app.post("/api/send-whatsapp", async (req, res) => {
   }
 });
 
+// ============ CLIENT EMAIL CONFIRMATION + INTERNAL ALERT ============
+// Called by website form AND chat widget after a client submission.
+// Sends: (1) confirmation email to the client, (2) internal alert to info@
+app.post("/api/notify-client", async (req, res) => {
+  try {
+    const lead = {
+      name: req.body.name || "",
+      email: req.body.email || "",
+      phone: req.body.phone || "",
+      services: req.body.services || "",
+      projectType: req.body.projectType || "",
+      location: req.body.location || [req.body.city, req.body.area].filter(Boolean).join(", "),
+      projectSize: req.body.projectSize || "",
+      timeline: req.body.timeline || "",
+      note: req.body.note || "",
+      source: req.body.source || "website",
+    };
+
+    if (!lead.name) {
+      return res.status(400).json({ success: false, error: "Name is required" });
+    }
+
+    const results = { clientEmail: false, internalEmail: false };
+
+    if (lead.email) {
+      try {
+        await sendEmail(lead.email, clientConfirmation(lead));
+        results.clientEmail = true;
+        console.log(`Client confirmation email sent to ${lead.email}`);
+      } catch (e) {
+        console.error("Client email failed:", e.message);
+      }
+    }
+
+    try {
+      await sendEmail(INTERNAL_NOTIFY_EMAIL, internalNotification("client", lead));
+      results.internalEmail = true;
+      console.log(`Internal lead alert sent for ${lead.name} (${lead.source})`);
+    } catch (e) {
+      console.error("Internal email failed:", e.message);
+    }
+
+    res.json({ success: true, results });
+  } catch (error) {
+    console.error("notify-client error:", error.message);
+    res.json({ success: false, error: error.message });
+  }
+});
+
+// ============ VENDOR REGISTRATION ============
+// Called by chat widget vendor branch. NO HubSpot, NO WhatsApp template.
+// Sends: (1) confirmation email to vendor with VendorLink WhatsApp,
+//        (2) internal alert to info@
+app.post("/api/vendor", async (req, res) => {
+  try {
+    const vendor = {
+      company: req.body.company || "",
+      supplies: req.body.supplies || "",
+      phone: req.body.phone || "",
+      email: req.body.email || "",
+    };
+
+    if (!vendor.company || !vendor.email) {
+      return res
+        .status(400)
+        .json({ success: false, error: "Company and email are required" });
+    }
+
+    const results = { vendorEmail: false, internalEmail: false };
+
+    try {
+      await sendEmail(vendor.email, vendorConfirmation(vendor));
+      results.vendorEmail = true;
+      console.log(`Vendor confirmation email sent to ${vendor.email}`);
+    } catch (e) {
+      console.error("Vendor email failed:", e.message);
+    }
+
+    try {
+      await sendEmail(INTERNAL_NOTIFY_EMAIL, internalNotification("vendor", vendor));
+      results.internalEmail = true;
+      console.log(`Internal vendor alert sent for ${vendor.company}`);
+    } catch (e) {
+      console.error("Internal vendor email failed:", e.message);
+    }
+
+    res.json({ success: true, results });
+  } catch (error) {
+    console.error("vendor endpoint error:", error.message);
+    res.json({ success: false, error: error.message });
+  }
+});
+
 async function sendWhatsAppTemplate(to, name, service, location, size) {
   const url = `${WHATSAPP_API_URL}/${PHONE_NUMBER_ID}/messages`;
 
@@ -257,7 +386,7 @@ async function sendWhatsAppTemplate(to, name, service, location, size) {
 }
 
 function formatPhoneNumber(phone) {
-  let digits = phone.replace(/\\D/g, "");
+  let digits = phone.replace(/\D/g, "");
 
   if (digits.startsWith("0") && digits.length === 11) {
     digits = "92" + digits.substring(1);
