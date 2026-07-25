@@ -254,9 +254,10 @@ app.post("/api/send-whatsapp", async (req, res) => {
   }
 });
 
-// ============ CLIENT EMAIL CONFIRMATION + INTERNAL ALERT ============
+// ============ CLIENT EMAIL CONFIRMATION ============
 // Called by website form AND chat widget after a client submission.
-// Sends: (1) confirmation email to the client, (2) internal alert to info@
+// Sends a branded confirmation email to the client.
+// (No internal email - leads are tracked in HubSpot.)
 app.post("/api/notify-client", async (req, res) => {
   try {
     const lead = {
@@ -268,32 +269,23 @@ app.post("/api/notify-client", async (req, res) => {
       location: req.body.location || [req.body.city, req.body.area].filter(Boolean).join(", "),
       projectSize: req.body.projectSize || "",
       timeline: req.body.timeline || "",
-      note: req.body.note || "",
       source: req.body.source || "website",
     };
 
-    if (!lead.name) {
-      return res.status(400).json({ success: false, error: "Name is required" });
+    if (!lead.name || !lead.email) {
+      return res
+        .status(400)
+        .json({ success: false, error: "Name and email are required" });
     }
 
-    const results = { clientEmail: false, internalEmail: false };
-
-    if (lead.email) {
-      try {
-        await sendEmail(lead.email, clientConfirmation(lead));
-        results.clientEmail = true;
-        console.log(`Client confirmation email sent to ${lead.email}`);
-      } catch (e) {
-        console.error("Client email failed:", e.message);
-      }
-    }
+    const results = { clientEmail: false };
 
     try {
-      await sendEmail(INTERNAL_NOTIFY_EMAIL, internalNotification("client", lead));
-      results.internalEmail = true;
-      console.log(`Internal lead alert sent for ${lead.name} (${lead.source})`);
+      await sendEmail(lead.email, clientConfirmation(lead));
+      results.clientEmail = true;
+      console.log(`Client confirmation email sent to ${lead.email} (${lead.source})`);
     } catch (e) {
-      console.error("Internal email failed:", e.message);
+      console.error("Client email failed:", e.message);
     }
 
     res.json({ success: true, results });

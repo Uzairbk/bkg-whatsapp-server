@@ -1,51 +1,95 @@
-// BKG Email Templates - used by server.js
+// BKG Email Templates v3 - dark theme matching binkhalidgroup.com exactly
+// Palette: bg #0a0a0f / card #16161f / accent #F59C69 / text #f0ece6
 // All emails sent from info@binkhalidgroup.com
 
 const BRAND = {
   name: "Bin Khalid Group",
   logo: "https://bkg.world/wp-content/uploads/2024/04/Logo-For-web2-copy.webp",
-  accent: "#b5764a",
-  dark: "#141414",
+  bg: "#0a0a0f",
+  card: "#16161f",
+  cardAlt: "#1c1c28",
+  accent: "#F59C69",
+  accentLight: "#f7b48a",
+  accentDark: "#d07a45",
+  textPrimary: "#f0ece6",
+  textBody: "#c7c3bd",
+  textMuted: "#9a9a9a",
+  border: "#26262f",
   phone: "042-35133492",
   mobile: "0345-9436328",
   website: "https://binkhalidgroup.com",
+  tcUrl: "https://www.binkhalidgroup.com/tc",
   vendorLinkNumber: "0340 8442904",
   vendorLinkWa: "https://wa.me/923408442904",
 };
 
-function layout(title, bodyHtml) {
+function layout(preheader, title, subtitle, bodyHtml) {
   return `<!DOCTYPE html>
 <html>
-<body style="margin:0;padding:0;background:#f4f2ef;font-family:Arial,Helvetica,sans-serif;">
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f4f2ef;padding:30px 0;">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="dark">
+<meta name="supported-color-schemes" content="dark">
+<style>@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&display=swap');</style>
+</head>
+<body style="margin:0;padding:0;background:${BRAND.bg};font-family:'Montserrat',Arial,Helvetica,sans-serif;">
+  <div style="display:none;max-height:0;overflow:hidden;">${preheader}</div>
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${BRAND.bg};padding:32px 12px;">
     <tr><td align="center">
-      <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,0.08);">
+      <table role="presentation" width="620" cellpadding="0" cellspacing="0" style="max-width:620px;width:100%;">
+
+        <!-- Header -->
         <tr>
-          <td style="background:${BRAND.dark};padding:26px 40px;" align="center">
-            <img src="${BRAND.logo}" alt="${BRAND.name}" height="42" style="display:block;">
+          <td style="background:${BRAND.card};border:1px solid ${BRAND.border};border-bottom:none;border-radius:14px 14px 0 0;padding:30px 40px;" align="center">
+            <img src="${BRAND.logo}" alt="${BRAND.name}" height="46" style="display:block;">
           </td>
         </tr>
+        <tr><td style="height:3px;background:${BRAND.accent};font-size:0;line-height:0;">&nbsp;</td></tr>
+
+        <!-- Title block -->
         <tr>
-          <td style="padding:36px 40px 10px;">
-            <h1 style="margin:0 0 18px;font-size:21px;color:#141414;">${title}</h1>
+          <td style="background:${BRAND.card};border-left:1px solid ${BRAND.border};border-right:1px solid ${BRAND.border};padding:38px 44px 8px;">
+            <h1 style="margin:0 0 8px;font-size:24px;line-height:1.3;color:${BRAND.textPrimary};">${title}</h1>
+            <p style="margin:0;font-size:13px;letter-spacing:1px;color:${BRAND.accent};font-weight:bold;">${subtitle}</p>
+          </td>
+        </tr>
+
+        <!-- Body -->
+        <tr>
+          <td style="background:${BRAND.card};border-left:1px solid ${BRAND.border};border-right:1px solid ${BRAND.border};padding:22px 44px 34px;">
             ${bodyHtml}
           </td>
         </tr>
+
+        <!-- Signature -->
         <tr>
-          <td style="padding:24px 40px 32px;">
-            <p style="margin:0 0 4px;font-size:13px;color:#555;">Warm regards,</p>
-            <p style="margin:0;font-size:14px;font-weight:bold;color:#141414;">Team ${BRAND.name}</p>
-            <p style="margin:14px 0 0;font-size:12px;color:#888;line-height:1.7;">
-              Phone: ${BRAND.phone} &nbsp;|&nbsp; Mobile: ${BRAND.mobile}<br>
-              <a href="${BRAND.website}" style="color:${BRAND.accent};text-decoration:none;">binkhalidgroup.com</a>
+          <td style="background:${BRAND.card};border-left:1px solid ${BRAND.border};border-right:1px solid ${BRAND.border};padding:0 44px 34px;">
+            <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="border-top:1px solid ${BRAND.border};">
+              <tr><td style="padding-top:22px;">
+                <p style="margin:0 0 2px;font-size:13px;color:${BRAND.textMuted};">Warm regards,</p>
+                <p style="margin:0;font-size:15px;font-weight:bold;color:${BRAND.textPrimary};">Team ${BRAND.name}</p>
+                <p style="margin:12px 0 0;font-size:12.5px;color:${BRAND.textMuted};line-height:1.8;">
+                  Phone: ${BRAND.phone} &nbsp;&bull;&nbsp; Mobile / WhatsApp: ${BRAND.mobile}<br>
+                  <a href="${BRAND.website}" style="color:${BRAND.accent};text-decoration:none;font-weight:bold;">binkhalidgroup.com</a>
+                </p>
+              </td></tr>
+            </table>
+          </td>
+        </tr>
+
+        <!-- Footer -->
+        <tr>
+          <td style="background:${BRAND.bg};border:1px solid ${BRAND.border};border-top:1px solid ${BRAND.border};border-radius:0 0 14px 14px;padding:22px 44px;" align="center">
+            <p style="margin:0 0 6px;font-size:11.5px;color:${BRAND.textMuted};line-height:1.7;">
+              Architecture, construction, interiors and custom fabrication - all under one roof. Offices in Lahore and New York - serving clients across Pakistan and worldwide. 15+ years of experience.
+            </p>
+            <p style="margin:0;font-size:11px;color:#6d675f;">
+              Terms and conditions apply. <a href="${BRAND.tcUrl}" style="color:${BRAND.accent};text-decoration:underline;">View terms &amp; conditions</a>
             </p>
           </td>
         </tr>
-        <tr>
-          <td style="background:#faf8f6;padding:16px 40px;border-top:1px solid #eee;" align="center">
-            <p style="margin:0;font-size:11px;color:#aaa;">Lahore's premier design + build company. Serving DHA, Bahria Town, and Gulberg since 2013.</p>
-          </td>
-        </tr>
+
       </table>
     </td></tr>
   </table>
@@ -53,113 +97,130 @@ function layout(title, bodyHtml) {
 </html>`;
 }
 
-function detailRows(pairs) {
+function detailCard(pairs) {
   const rows = pairs
     .filter(([, v]) => v)
     .map(
       ([k, v]) =>
         `<tr>
-          <td style="padding:8px 14px;font-size:13px;color:#888;border-bottom:1px solid #f0ece8;white-space:nowrap;">${k}</td>
-          <td style="padding:8px 14px;font-size:13px;color:#141414;font-weight:bold;border-bottom:1px solid #f0ece8;">${v}</td>
+          <td style="padding:9px 0 9px 18px;font-size:13px;color:${BRAND.textMuted};white-space:nowrap;vertical-align:top;width:150px;">${k}</td>
+          <td style="padding:9px 18px 9px 12px;font-size:13.5px;color:${BRAND.textPrimary};font-weight:bold;line-height:1.5;">${v}</td>
         </tr>`
     )
     .join("");
-  return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#faf8f6;border-radius:8px;margin:18px 0;">${rows}</table>`;
+  return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${BRAND.cardAlt};border-left:3px solid ${BRAND.accent};border-radius:0 10px 10px 0;margin:20px 0;">
+    <tr><td style="height:8px;font-size:0;">&nbsp;</td></tr>
+    ${rows}
+    <tr><td style="height:8px;font-size:0;">&nbsp;</td></tr>
+  </table>`;
+}
+
+function button(href, label, bgColor, textColor) {
+  return `<table role="presentation" cellpadding="0" cellspacing="0" style="margin:6px 0 10px;">
+    <tr><td style="background:${bgColor};border-radius:100px;" align="center">
+      <a href="${href}" style="display:inline-block;padding:14px 32px;font-size:14px;font-weight:bold;color:${textColor};text-decoration:none;font-family:'Montserrat',Arial,Helvetica,sans-serif;">${label}</a>
+    </td></tr>
+  </table>`;
 }
 
 // 1. CLIENT CONFIRMATION - after form or chat submission
 function clientConfirmation(lead) {
   const firstName = (lead.name || "").trim().split(" ")[0] || "there";
   const body = `
-    <p style="font-size:14px;color:#444;line-height:1.7;margin:0 0 6px;">
+    <p style="font-size:14.5px;color:${BRAND.textBody};line-height:1.8;margin:0 0 6px;">
       Dear ${firstName},
     </p>
-    <p style="font-size:14px;color:#444;line-height:1.7;margin:0 0 6px;">
-      Thank you for contacting ${BRAND.name}. We have received your project details and the right specialist from our team will call you within <strong>48 working hours</strong>.
+    <p style="font-size:14.5px;color:${BRAND.textBody};line-height:1.8;margin:0 0 6px;">
+      Thank you for choosing ${BRAND.name}. We have received your project details, and the right specialist from our team will call you within <strong style="color:${BRAND.accent};">48 working hours</strong>.
     </p>
-    ${detailRows([
+    ${detailCard([
       ["Services", lead.services],
       ["Project Type", lead.projectType],
       ["Location", lead.location],
-      ["Plot / Property Size", lead.projectSize],
+      ["Plot / Size", lead.projectSize],
       ["Timeline", lead.timeline],
     ])}
-    <p style="font-size:13px;color:#666;line-height:1.7;margin:0;">
-      Meanwhile, feel free to explore our portfolio at
-      <a href="${BRAND.website}" style="color:${BRAND.accent};">binkhalidgroup.com</a>
-      or message us on WhatsApp at ${BRAND.mobile} for anything urgent.
-    </p>`;
+    <p style="font-size:13px;color:${BRAND.textMuted};line-height:1.7;margin:0 0 16px;">
+      Spot a mistake in these details? Just reply to this email and we'll correct it.
+    </p>
+    <p style="font-size:13.5px;color:${BRAND.textBody};line-height:1.8;margin:0 0 18px;">
+      Meanwhile, explore our completed projects or reach us directly for anything urgent.
+    </p>
+    ${button(BRAND.website, "View Our Portfolio &rarr;", BRAND.accent, BRAND.bg)}`;
   return {
     subject: `We've received your project details - ${BRAND.name}`,
-    html: layout("Thank you for reaching out!", body),
+    html: layout(
+      "Your project details are with our team - a specialist will call you within 48 working hours.",
+      "Thank you for reaching out!",
+      "PROJECT REQUEST RECEIVED",
+      body
+    ),
   };
 }
 
 // 2. VENDOR CONFIRMATION - with VendorLink WhatsApp instructions
 function vendorConfirmation(vendor) {
   const body = `
-    <p style="font-size:14px;color:#444;line-height:1.7;margin:0 0 6px;">
+    <p style="font-size:14.5px;color:${BRAND.textBody};line-height:1.8;margin:0 0 6px;">
       Dear Vendor,
     </p>
-    <p style="font-size:14px;color:#444;line-height:1.7;margin:0 0 6px;">
-      Thank you for your interest in working with ${BRAND.name}. We have received your registration and our procurement team will review it.
+    <p style="font-size:14.5px;color:${BRAND.textBody};line-height:1.8;margin:0 0 6px;">
+      Thank you for your interest in working with ${BRAND.name}. Your registration is with our procurement team.
     </p>
-    ${detailRows([
+    ${detailCard([
       ["Company", vendor.company],
       ["Supplies", vendor.supplies],
       ["Phone", vendor.phone],
     ])}
-    <p style="font-size:14px;color:#444;line-height:1.7;margin:0 0 16px;">
-      <strong>Next step:</strong> please share your company portfolio, product catalogue, and rate list on our <strong>VendorLink WhatsApp</strong>:
+    <p style="font-size:14.5px;color:${BRAND.textBody};line-height:1.8;margin:0 0 14px;">
+      <strong style="color:${BRAND.textPrimary};">Next step:</strong> share your company portfolio, product catalogue and rate list on our VendorLink WhatsApp:
     </p>
-    <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 16px;">
-      <tr><td style="background:#25D366;border-radius:8px;">
-        <a href="${BRAND.vendorLinkWa}" style="display:inline-block;padding:12px 24px;font-size:14px;font-weight:bold;color:#ffffff;text-decoration:none;">
-          VendorLink WhatsApp: ${BRAND.vendorLinkNumber}
-        </a>
-      </td></tr>
-    </table>
-    <p style="font-size:13px;color:#666;line-height:1.7;margin:0;">
-      Our team reaches out when there is a fit for an ongoing or upcoming project. We appreciate your interest in working with us.
+    ${button(
+      BRAND.vendorLinkWa,
+      `<img src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/WhatsApp.svg/64px-WhatsApp.svg.png" width="18" height="18" alt="" style="vertical-align:-4px;margin-right:9px;border:0;">Share Portfolio`,
+      "#25D366",
+      "#0a0a0f"
+    )}
+    <p style="font-size:12px;color:${BRAND.textMuted};margin:2px 0 14px;">
+      VendorLink: ${BRAND.vendorLinkNumber}
+    </p>
+    <p style="font-size:13px;color:${BRAND.textMuted};line-height:1.7;margin:8px 0 0;">
+      Our team reaches out when there is a fit for an ongoing or upcoming project.
     </p>`;
   return {
     subject: `Vendor registration received - ${BRAND.name}`,
-    html: layout("Vendor Registration Received", body),
+    html: layout(
+      "Your vendor registration is with our procurement team - share your portfolio on VendorLink WhatsApp.",
+      "Vendor Registration Received",
+      "BKG VendorLink",
+      body
+    ),
   };
 }
 
-// 3. INTERNAL NOTIFICATION - to info@binkhalidgroup.com
+// 3. INTERNAL NOTIFICATION - to info@binkhalidgroup.com (vendors only;
+//    client leads are tracked in HubSpot)
 function internalNotification(kind, data) {
-  const isVendor = kind === "vendor";
-  const title = isVendor ? "New Vendor Registration" : `New ${data.source === "chat" ? "Chat" : "Form"} Lead`;
-  const rows = isVendor
-    ? [
-        ["Company", data.company],
-        ["Supplies", data.supplies],
-        ["Phone", data.phone],
-        ["Email", data.email],
-        ["Source", "Website chat"],
-      ]
-    : [
-        ["Name", data.name],
-        ["Phone", data.phone],
-        ["Email", data.email],
-        ["Services", data.services],
-        ["Project Type", data.projectType],
-        ["Location", data.location],
-        ["Plot / Size", data.projectSize],
-        ["Timeline", data.timeline],
-        ["Note", data.note],
-        ["Source", data.source || "website"],
-      ];
+  const rows = [
+    ["Company", data.company],
+    ["Supplies", data.supplies],
+    ["Phone", data.phone],
+    ["Email", data.email],
+    ["Source", "Website chat"],
+  ];
   const body = `
-    <p style="font-size:14px;color:#444;line-height:1.7;margin:0;">
-      ${isVendor ? "A vendor registered through the website chat." : "A new lead just came in from the website. Speed matters - call within 5 minutes for the best conversion."}
+    <p style="font-size:14.5px;color:${BRAND.textBody};line-height:1.8;margin:0;">
+      A vendor registered through the website chat.
     </p>
-    ${detailRows(rows)}`;
+    ${detailCard(rows)}`;
   return {
-    subject: `[BKG Website] ${title}${isVendor ? ` - ${data.company || ""}` : ` - ${data.name || ""}`}`,
-    html: layout(title, body),
+    subject: `[BKG Website] New Vendor Registration - ${data.company || ""}`,
+    html: layout(
+      "New vendor registration from the website.",
+      "New Vendor Registration",
+      "WEBSITE CHAT - VENDOR PATH",
+      body
+    ),
   };
 }
 
