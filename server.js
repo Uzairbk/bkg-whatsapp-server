@@ -1,6 +1,5 @@
 const express = require("express");
 const cors = require("cors");
-const nodemailer = require("nodemailer");
 require("dotenv").config();
 
 const {
@@ -22,33 +21,40 @@ const TEMPLATE_NAME = process.env.WHATSAPP_TEMPLATE_NAME || "contact_form_confir
 const WEBHOOK_VERIFY_TOKEN = process.env.WEBHOOK_VERIFY_TOKEN || "bkg_whatsapp_verify_2024";
 const WABA_ID = process.env.WABA_ID || "2320026945133303";
 
-// ============ EMAIL (Gmail - info@binkhalidgroup.com) ============
-const EMAIL_USER = process.env.EMAIL_USER; // info@binkhalidgroup.com
-const EMAIL_APP_PASSWORD = process.env.EMAIL_APP_PASSWORD; // Gmail App Password
+// ============ EMAIL (Brevo HTTP API - sends as info@binkhalidgroup.com) ============
+const BREVO_API_KEY = process.env.BREVO_API_KEY;
+const EMAIL_USER = process.env.EMAIL_USER || "info@binkhalidgroup.com";
 const INTERNAL_NOTIFY_EMAIL = process.env.INTERNAL_NOTIFY_EMAIL || EMAIL_USER;
 
-let mailer = null;
-if (EMAIL_USER && EMAIL_APP_PASSWORD) {
-  mailer = nodemailer.createTransport({
-    service: "gmail",
-    auth: { user: EMAIL_USER, pass: EMAIL_APP_PASSWORD },
-  });
-  mailer
-    .verify()
-    .then(() => console.log("Email transporter ready (" + EMAIL_USER + ")"))
-    .catch((e) => console.error("Email transporter error:", e.message));
+if (!BREVO_API_KEY) {
+  console.warn("BREVO_API_KEY not set - email disabled");
 } else {
-  console.warn("EMAIL_USER / EMAIL_APP_PASSWORD not set - email disabled");
+  console.log("Email ready via Brevo API (sender: " + EMAIL_USER + ")");
 }
 
 async function sendEmail(to, template) {
-  if (!mailer) throw new Error("Email not configured");
-  return mailer.sendMail({
-    from: `"Bin Khalid Group" <${EMAIL_USER}>`,
-    to: to,
-    subject: template.subject,
-    html: template.html,
+  if (!BREVO_API_KEY) throw new Error("Email not configured");
+  const response = await fetch("https://api.brevo.com/v3/smtp/email", {
+    method: "POST",
+    headers: {
+      "api-key": BREVO_API_KEY,
+      "Content-Type": "application/json",
+      Accept: "application/json",
+    },
+    body: JSON.stringify({
+      sender: { name: "Bin Khalid Group", email: EMAIL_USER },
+      to: [{ email: to }],
+      subject: template.subject,
+      htmlContent: template.html,
+    }),
   });
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(
+      `Brevo API Error ${response.status}: ${JSON.stringify(data)}`
+    );
+  }
+  return data;
 }
 
 const AUTO_REPLY_MESSAGE = `Thank you for contacting Bin Khalid Group.
