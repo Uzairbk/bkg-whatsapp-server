@@ -70,7 +70,7 @@ function layout(preheader, title, subtitle, bodyHtml) {
                 <p style="margin:0 0 2px;font-size:13px;color:${BRAND.textMuted};">Warm regards,</p>
                 <p style="margin:0;font-size:15px;font-weight:bold;color:${BRAND.textPrimary};">Team ${BRAND.name}</p>
                 <p style="margin:12px 0 0;font-size:12.5px;color:${BRAND.textMuted};line-height:1.8;">
-                  Phone: ${BRAND.phone} &nbsp;&bull;&nbsp; Mobile / WhatsApp: ${BRAND.mobile}<br>
+                  Mobile / WhatsApp: ${BRAND.mobile}<br>
                   <a href="${BRAND.website}" style="color:${BRAND.accent};text-decoration:none;font-weight:bold;">binkhalidgroup.com</a>
                 </p>
               </td></tr>
@@ -81,6 +81,9 @@ function layout(preheader, title, subtitle, bodyHtml) {
         <!-- Footer -->
         <tr>
           <td style="background:${BRAND.bg};border:1px solid ${BRAND.border};border-top:1px solid ${BRAND.border};border-radius:0 0 14px 14px;padding:22px 44px;" align="center">
+            <p style="margin:0 0 10px;font-size:11.5px;color:${BRAND.textMuted};line-height:1.7;">
+              <strong style="color:${BRAND.textPrimary};">DHA</strong> 042-3513-3492 &nbsp;&bull;&nbsp; <strong style="color:${BRAND.textPrimary};">Gulberg</strong> 042-3513-3491 &nbsp;&bull;&nbsp; <strong style="color:${BRAND.textPrimary};">Bahria Town</strong> 042-3597-6161
+            </p>
             <p style="margin:0 0 6px;font-size:11.5px;color:${BRAND.textMuted};line-height:1.7;">
               Architecture, construction, interiors and custom fabrication - all under one roof. Offices in Lahore and New York - serving clients across Pakistan and worldwide. 15+ years of experience.
             </p>
