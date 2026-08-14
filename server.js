@@ -14,6 +14,16 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 
+// Serve the email logo from this app, so the emails render correctly before
+// the website goes live. At go live, point BRAND.logo in emailTemplates.js at
+// https://binkhalidgroup.com/email/bkg-logo.png and this route can be removed.
+const { LOGO_PNG } = require("./logoAsset");
+app.get("/assets/bkg-logo.png", (req, res) => {
+  res.set("Content-Type", "image/png");
+  res.set("Cache-Control", "public, max-age=31536000, immutable");
+  res.send(LOGO_PNG);
+});
+
 const WHATSAPP_API_URL = "https://graph.facebook.com/v25.0";
 const PHONE_NUMBER_ID = process.env.WHATSAPP_PHONE_NUMBER_ID || "1069499549576632";
 const ACCESS_TOKEN = process.env.WHATSAPP_ACCESS_TOKEN;
