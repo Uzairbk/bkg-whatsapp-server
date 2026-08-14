@@ -4,7 +4,7 @@
 
 const BRAND = {
   name: "Bin Khalid Group",
-  logo: "https://binkhalidgroup.com/email/bkg-logo.png",
+  logo: "https://bkg-whatsapp-server.onrender.com/assets/bkg-logo.png",
   bg: "#0a0a0f",
   card: "#16161f",
   cardAlt: "#1c1c28",
