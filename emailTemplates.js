@@ -4,7 +4,7 @@
 
 const BRAND = {
   name: "Bin Khalid Group",
-  logo: "https://bkg.world/wp-content/uploads/2024/04/Logo-For-web2-copy.webp",
+  logo: "https://binkhalidgroup.com/email/bkg-logo.png",
   bg: "#0a0a0f",
   card: "#16161f",
   cardAlt: "#1c1c28",
@@ -42,7 +42,7 @@ function layout(preheader, title, subtitle, bodyHtml) {
         <!-- Header -->
         <tr>
           <td style="background:${BRAND.card};border:1px solid ${BRAND.border};border-bottom:none;border-radius:14px 14px 0 0;padding:30px 40px;" align="center">
-            <img src="${BRAND.logo}" alt="${BRAND.name}" height="46" style="display:block;">
+            <img src="${BRAND.logo}" alt="${BRAND.name}" width="120" style="width:120px;max-width:120px;height:auto;display:block;border:0;outline:none;text-decoration:none;">
           </td>
         </tr>
         <tr><td style="height:3px;background:${BRAND.accent};font-size:0;line-height:0;">&nbsp;</td></tr>
