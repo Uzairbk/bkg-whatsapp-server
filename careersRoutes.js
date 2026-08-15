@@ -280,14 +280,26 @@ function registerCareersRoutes(app, express) {
   // than the rest of the API. Scoped to this route only.
   const bigJson = express.json({ limit: '12mb' });
 
-  const recent = new Map();               // ip -> [timestamps], simple rate limit
+  // Rate limit, deliberately split into a check and a record.
+  // Only a genuine submission counts against the allowance - a candidate who
+  // mistypes their email three times must not lock themselves out. Rejected
+  // and bot requests never reach the record step, and they send no email, so
+  // they cost nothing worth rationing.
+  const recent = new Map();               // ip -> [timestamps of real sends]
+  const WINDOW = 60 * 60 * 1000;
+  const MAX_PER_WINDOW = 5;
+
   function rateLimited(ip) {
     const now = Date.now();
-    const hits = (recent.get(ip) || []).filter(t => now - t < 60 * 60 * 1000);
-    hits.push(now);
+    const hits = (recent.get(ip) || []).filter(t => now - t < WINDOW);
+    recent.set(ip, hits);
+    return hits.length >= MAX_PER_WINDOW;
+  }
+  function recordSend(ip) {
+    const hits = recent.get(ip) || [];
+    hits.push(Date.now());
     recent.set(ip, hits);
     if (recent.size > 5000) recent.clear();
-    return hits.length > 5;               // 5 applications per IP per hour
   }
 
   app.post('/api/apply', bigJson, (req, res) => {
@@ -324,6 +336,8 @@ function registerCareersRoutes(app, express) {
     // Name the file so HR does not end up with forty files called "cv.pdf".
     const safeName = a.name.replace(/[^\w \-]/g, '').trim().replace(/\s+/g, '-') || 'candidate';
     const attachName = safeName + '-CV.' + ext;
+
+    recordSend(ip);
 
     const toHR = sendBrevo({
       sender: CONFIRM_FROM,
