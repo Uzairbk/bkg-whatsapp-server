@@ -12,6 +12,12 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.use(cors());
+// Careers: live job list from PayPeople, plus CV applications.
+// Registered BEFORE express.json() so /api/apply can use its own 12mb
+// parser, while every other route keeps the default 100kb limit.
+const { registerCareersRoutes } = require("./careersRoutes");
+registerCareersRoutes(app, express);
+
 app.use(express.json());
 
 // Serve the email logo from this app, so the emails render correctly before
