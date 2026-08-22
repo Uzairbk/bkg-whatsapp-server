@@ -227,4 +227,9 @@ function internalNotification(kind, data) {
   };
 }
 
-module.exports = { clientConfirmation, vendorConfirmation, internalNotification };
+// BRAND, layout, detailCard and button are exported so careersRoutes.js can
+// build on the same shell. One design system, one file - do not copy it.
+module.exports = {
+  clientConfirmation, vendorConfirmation, internalNotification,
+  BRAND, layout, detailCard, button,
+};

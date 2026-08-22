@@ -159,71 +159,84 @@ function sendBrevo(payload) {
   }));
 }
 
-const SHELL = (title, inner) => `<!DOCTYPE html><html><body style="margin:0;padding:0;background:#f4f4f5;">
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f4f4f5;padding:28px 12px;">
-<tr><td align="center">
-<table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px;background:#ffffff;border-radius:14px;overflow:hidden;font-family:Arial,Helvetica,sans-serif;">
-  <tr><td style="background:#0a0a0f;padding:26px 30px;">
-    <img src="https://bkg-whatsapp-server.onrender.com/assets/bkg-logo.png" width="120" alt="Bin Khalid Group" style="height:auto;display:block;border:0;">
-  </td></tr>
-  <tr><td style="padding:32px 30px;">
-    <h1 style="margin:0 0 18px;font-size:19px;color:#0a0a0f;font-weight:700;">${title}</h1>
-    ${inner}
-  </td></tr>
-  <tr><td style="background:#0a0a0f;padding:18px 30px;color:#8a8a8a;font-size:11px;line-height:1.7;">
-    Bin Khalid Group &middot; CP-83 Raya Fairways Commercial, DHA Lahore<br>
-    Monday to Saturday, 10am to 6pm
-  </td></tr>
-</table></td></tr></table></body></html>`;
+// The careers emails share the dark shell used by the lead and vendor emails,
+// so every message BKG sends looks like it came from the same company. The
+// shell lives in emailTemplates.js - never copy it, import it, or the two
+// systems drift apart the moment one is edited.
+const { BRAND, layout, detailCard, button } = require('./emailTemplates');
+
+// A bordered callout for things the reader must not miss. detailCard is for
+// key/value pairs; this is for a sentence.
+function notice(inner, accent) {
+  const bar = accent || BRAND.accent;
+  return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0"
+      style="background:${BRAND.cardAlt};border-left:3px solid ${bar};border-radius:0 10px 10px 0;margin:20px 0;">
+    <tr><td style="padding:16px 18px;font-size:13.5px;color:${BRAND.textBody};line-height:1.8;">${inner}</td></tr>
+  </table>`;
+}
 
 function hrEmail(a, cvName) {
-  const row = (k, v) => v
-    ? `<tr><td style="padding:7px 0;color:#666;font-size:13px;width:150px;vertical-align:top;">${esc(k)}</td>
-           <td style="padding:7px 0;color:#0a0a0f;font-size:13px;font-weight:600;">${esc(v)}</td></tr>`
-    : '';
-  return SHELL('New application: ' + esc(a.role), `
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;">
-      ${row('Applying for', a.role)}
-      ${row('Name', a.name)}
-      ${row('Email', a.email)}
-      ${row('Phone', a.phone)}
-      ${row('Experience', a.experience)}
-      ${row('Portfolio', a.portfolio)}
-      ${row('CV attached', cvName)}
-      ${row('Applied from', a.pageUrl)}
-      ${row('Received', new Date().toLocaleString('en-GB', { timeZone: 'Asia/Karachi' }) + ' PKT')}
-    </table>
-    ${a.message ? `<p style="margin:22px 0 0;padding:16px 18px;background:#faf6f2;border-left:3px solid #F59C69;
-        color:#333;font-size:13px;line-height:1.75;white-space:pre-wrap;">${esc(a.message)}</p>` : ''}
-    <p style="margin:26px 0 0;color:#666;font-size:12px;line-height:1.7;">
-      Reply to this email to write to the candidate directly. The CV is attached.
-    </p>`);
+  const body = `
+    <p style="font-size:14.5px;color:${BRAND.textBody};line-height:1.8;margin:0 0 6px;">
+      A candidate applied through the careers page. Their CV is attached to this email.
+    </p>
+    ${detailCard([
+      ['Applying for', esc(a.role)],
+      ['Name', esc(a.name)],
+      ['Email', esc(a.email)],
+      ['Phone', esc(a.phone)],
+      ['Experience', esc(a.experience)],
+      ['Portfolio', a.portfolio ? `<a href="${esc(a.portfolio)}" style="color:${BRAND.accent};text-decoration:none;">${esc(a.portfolio)}</a>` : ''],
+      ['CV attached', esc(cvName)],
+      ['Received', new Date().toLocaleString('en-GB', { timeZone: 'Asia/Karachi' }) + ' PKT'],
+    ])}
+    ${a.message ? notice('<strong style="color:' + BRAND.textPrimary + ';">From the candidate</strong><br>'
+        + '<span style="white-space:pre-wrap;">' + esc(a.message) + '</span>') : ''}
+    <p style="font-size:13px;color:${BRAND.textMuted};line-height:1.7;margin:16px 0 0;">
+      Reply to this email to write to the candidate directly - the reply address is theirs, not ours.
+    </p>`;
+  return layout(
+    'New application for ' + esc(a.role) + ' - CV attached.',
+    'New Application',
+    'CAREERS - ' + esc(String(a.role || '').toUpperCase()),
+    body
+  );
 }
 
 function candidateEmail(a) {
-  return SHELL('Thank you, ' + esc(a.name.split(' ')[0]), `
-    <p style="margin:0 0 16px;color:#333;font-size:14px;line-height:1.8;">
-      We have received your application for <strong>${esc(a.role)}</strong> and your CV is now with our HR team.
+  const firstName = (a.name || '').trim().split(' ')[0] || 'there';
+  const body = `
+    <p style="font-size:14.5px;color:${BRAND.textBody};line-height:1.8;margin:0 0 6px;">
+      Dear ${esc(firstName)},
     </p>
-    <p style="margin:0 0 16px;color:#333;font-size:14px;line-height:1.8;">
-      Every application is reviewed. If your experience matches what the role needs, someone from HR will
-      contact you directly to arrange the next step. Because we receive a high number of applications,
-      we are not always able to respond to each one individually.
+    <p style="font-size:14.5px;color:${BRAND.textBody};line-height:1.8;margin:0 0 6px;">
+      Thank you for applying to ${BRAND.name}. We have received your application for
+      <strong style="color:${BRAND.accent};">${esc(a.role)}</strong> and your CV is now with our HR team.
     </p>
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0"
-           style="margin:24px 0;background:#faf6f2;border-radius:10px;">
-      <tr><td style="padding:18px 20px;color:#333;font-size:13px;line-height:1.8;">
-        <strong style="color:#0a0a0f;">Please do not reply to this email.</strong><br>
-        This address is not monitored. For any question about your application or a role,
-        write to <a href="mailto:HR@bkg.world" style="color:#c9741f;font-weight:600;">HR@bkg.world</a>.
-      </td></tr>
-    </table>
-    <p style="margin:0;color:#666;font-size:12px;line-height:1.8;">
-      A note on safety: BKG never charges a fee at any stage of hiring. We will not ask you to pay for a
-      test, a medical, training or a visa. If anyone asks you for money in our name, tell HR@bkg.world.
-    </p>`);
+    <p style="font-size:14.5px;color:${BRAND.textBody};line-height:1.8;margin:0 0 6px;">
+      Every application is reviewed. If your experience matches what the role needs, someone from HR
+      will contact you directly to arrange the next step. Because we receive a high number of
+      applications, we are not always able to respond to each one individually.
+    </p>
+    ${notice('<strong style="color:' + BRAND.textPrimary + ';">Please do not reply to this email.</strong><br>'
+      + 'This address is not monitored. For any question about your application or a role, write to '
+      + '<a href="mailto:HR@bkg.world" style="color:' + BRAND.accent + ';text-decoration:none;font-weight:bold;">HR@bkg.world</a>.')}
+    <p style="font-size:13.5px;color:${BRAND.textBody};line-height:1.8;margin:0 0 18px;">
+      While you wait, have a look at the work you would be joining.
+    </p>
+    ${button(BRAND.website, 'View Our Website &rarr;', BRAND.accent, BRAND.bg)}
+    ${notice('<strong style="color:' + BRAND.textPrimary + ';">A note on safety.</strong><br>'
+      + BRAND.name + ' never charges a fee at any stage of hiring. We will not ask you to pay for a test, '
+      + 'a medical, training or a visa. If anyone asks you for money in our name, tell '
+      + '<a href="mailto:HR@bkg.world" style="color:' + BRAND.accent + ';text-decoration:none;font-weight:bold;">HR@bkg.world</a>.',
+      '#d9534f')}`;
+  return layout(
+    'We have your application for ' + esc(a.role) + '.',
+    'Application Received',
+    'THANK YOU FOR APPLYING',
+    body
+  );
 }
-
 // ---------------------------------------------------------------- PayPeople push
 //
 // The candidate should also land in the PayPeople ATS pipeline so HR works one
